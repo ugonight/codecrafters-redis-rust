@@ -32,11 +32,11 @@ fn handle_client(mut stream: TcpStream) {
     // println!("{}", String::from_utf8_lossy(&buf));
 
     let response = "+PONG\r\n";
-    if buf.len() > 0 {
-        stream.write(&buf).unwrap();
-    } else {
-        stream.write(&response.as_bytes()).unwrap();
-    }
+    // if buf.len() > 0 {
+    // stream.write(&buf).unwrap();
+    // } else {
+    stream.write(&response.as_bytes()).unwrap();
+    // }
 
     stream.flush().unwrap();
 }
