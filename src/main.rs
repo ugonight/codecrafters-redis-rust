@@ -27,7 +27,7 @@ fn handle_client(mut stream: TcpStream) {
     let mut buf: [u8; 255] = [0; 255];
     stream.read(&mut buf).unwrap();
 
-    // println!("{}", String::from_utf8_lossy(&buf));
+    println!("{}", String::from_utf8_lossy(&buf));
 
     let response = "+PONG\r\n";
     // if buf.len() > 0 {
@@ -36,5 +36,5 @@ fn handle_client(mut stream: TcpStream) {
     stream.write(&response.as_bytes()).unwrap();
     // }
 
-    // stream.flush().unwrap();
+    stream.flush().unwrap();
 }
