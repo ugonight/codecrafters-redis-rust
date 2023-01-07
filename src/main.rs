@@ -10,10 +10,7 @@ fn main() {
 
     let listener = TcpListener::bind("127.0.0.1:6379").unwrap();
 
-    let mut i = 0;
     for stream in listener.incoming() {
-        i = i + 1;
-        println!("{}", i);
         match stream {
             Ok(_stream) => {
                 println!("accepted new connection");
@@ -27,17 +24,23 @@ fn main() {
 }
 
 fn handle_client(mut stream: TcpStream) {
-    let mut buf: [u8; 255] = [0; 255];
-    stream.read(&mut buf).unwrap();
+    loop {
+        let mut buf: [u8; 255] = [0; 255];
+        let size = stream.read(&mut buf).unwrap();
 
-    println!("res: {}", String::from_utf8_lossy(&buf));
+        if size == 0 {
+            break;
+        }
 
-    let response = "+PONG\r\n";
-    // if buf.len() > 0 {
-    // stream.write(&buf).unwrap();
-    // } else {
-    stream.write(&response.as_bytes()).unwrap();
-    // }
+        println!("res: {}", String::from_utf8_lossy(&buf));
+
+        let response = "+PONG\r\n";
+        // if buf.len() > 0 {
+        // stream.write(&buf).unwrap();
+        // } else {
+        stream.write(&response.as_bytes()).unwrap();
+        // }
+    }
 
     stream.flush().unwrap();
 }
