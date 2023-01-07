@@ -2,6 +2,8 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
+use tokio::time::error::Elapsed;
+
 fn main() {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
@@ -27,7 +29,14 @@ fn handle_client(mut stream: TcpStream) {
     let mut buf: [u8; 255] = [0; 255];
     stream.read(&mut buf).unwrap();
 
-    // let response = "+PONG\r\n";
-    stream.write(&buf).unwrap();
+    // println!("{}", String::from_utf8_lossy(&buf));
+
+    let response = "+PONG\r\n";
+    if buf.len() > 0 {
+        stream.write(&buf).unwrap();
+    } else {
+        stream.write(&response.as_bytes()).unwrap();
+    }
+
     stream.flush().unwrap();
 }
