@@ -24,11 +24,10 @@ fn main() {
 }
 
 fn handle_client(mut stream: TcpStream) {
-    // let mut buf = String::with_capacity(512);
-    // let res = stream.read_to_string(&mut buf);
-    // println!("res : {}", res.unwrap());
+    let mut buf: [u8; 255] = [0; 255];
+    stream.read(&mut buf).unwrap();
 
-    let response = "+PONG\r\n";
-    stream.write(response.as_bytes()).unwrap();
+    // let response = "+PONG\r\n";
+    stream.write(&buf).unwrap();
     stream.flush().unwrap();
 }
