@@ -36,5 +36,5 @@ fn handle_client(mut stream: TcpStream) {
     stream.write(&response.as_bytes()).unwrap();
     // }
 
-    stream.flush().unwrap();
+    // stream.flush().unwrap();
 }
