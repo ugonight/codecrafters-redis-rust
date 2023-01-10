@@ -30,8 +30,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .collect();
                 // println!("req: {}", req_array.join(" "));
                 if req_array.len() > 4 {
-                    println!("req: {}", req_array.last().unwrap());
-                    res = format!("+{}\r\n", req_array.last().unwrap());
+                    println!("req: {}", req_array.get(4).unwrap());
+                    res = format!("+{}\r\n", req_array.get(4).unwrap());
                 }
 
                 // Write the data back
