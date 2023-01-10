@@ -28,6 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .unwrap()
                     .split("\r\n")
                     .collect();
+                println!("req: {}", req_array.join(" "));
                 if req_array.len() > 4 {
                     res = format!("+{}\r\n", req_array.last().unwrap());
                 }
