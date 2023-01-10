@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
 
                 // Write the data back
-                if let Err(e) = socket.write_all("+PONG\r\n".as_bytes()).await {
+                if let Err(e) = socket.write_all("*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n".as_bytes()).await {
                     eprintln!("failed to write to socket; err = {:?}", e);
                     return;
                 }
