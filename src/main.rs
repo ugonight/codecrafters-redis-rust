@@ -1,5 +1,5 @@
-use tokio::net::TcpListener;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,8 +23,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 };
 
+                let mut res = String::from("+PONG\r\n");
+                let req_array: Vec<&str> = std::str::from_utf8(&mut buf)
+                    .unwrap()
+                    .split("\r\n")
+                    .collect();
+                if req_array.len() > 4 {
+                    res = format!("+{}\r\n", req_array.last().unwrap());
+                }
+
                 // Write the data back
-                if let Err(e) = socket.write_all("*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n".as_bytes()).await {
+                if let Err(e) = socket.write_all(res.as_bytes()).await {
                     eprintln!("failed to write to socket; err = {:?}", e);
                     return;
                 }
@@ -33,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-/* 
+/*
 // Uncomment this block to pass the first stage
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
