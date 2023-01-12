@@ -35,10 +35,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if cmd_name == "echo" && req_array.len() > 4 {
                     res = format!("+{}\r\n", req_array.get(4).unwrap());
                 } else if cmd_name == "set" && req_array.len() > 6 {
-                    res = "OK".to_string();
+                    res = String::from("+OK\r\n");
                     dic.insert(req_array[4].to_string(), req_array[6].to_string());
                 } else if cmd_name == "get" {
-                    res = dic.get(&req_array[4].to_string()).unwrap().to_string();
+                    let str = dic.get(&req_array[4].to_string()).unwrap().to_string();
+                    res = format!("+{}\r\n", str);
                 }
 
                 // Write the data back
