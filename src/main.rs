@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
@@ -10,6 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::spawn(async move {
             let mut buf = [0; 1024];
+            let mut dic: HashMap<String, String> = HashMap::new();
 
             // In a loop, read data from the socket and write the data back.
             loop {
@@ -24,13 +26,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
 
                 let mut res = String::from("+PONG\r\n");
-                let req_array: Vec<&str> = std::str::from_utf8(&buf)
-                    .unwrap()
-                    .split("\r\n")
-                    .collect();
-                println!("req: {}",req_array.join(", "));
-                if req_array.len() > 4 {
+                let req_array: Vec<&str> =
+                    std::str::from_utf8(&buf).unwrap().split("\r\n").collect();
+                let cmd_name = req_array.get(2).unwrap_or(&"").to_string();
+
+                println!("req: {}", req_array.join(", "));
+
+                if cmd_name == "echo" && req_array.len() > 4 {
                     res = format!("+{}\r\n", req_array.get(4).unwrap());
+                } else if cmd_name == "set" && req_array.len() > 6 {
+                    res = "OK".to_string();
+                    dic.insert(req_array[4].to_string(), req_array[6].to_string());
+                } else if cmd_name == "get" {
+                    res = dic.get(&req_array[4].to_string()).unwrap().to_string();
                 }
 
                 // Write the data back
