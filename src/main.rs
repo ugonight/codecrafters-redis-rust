@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // In a loop, read data from the socket and write the data back.
             loop {
-                let n = match socket.read(&mut buf).await {
+                let _n = match socket.read(&mut buf).await {
                     // socket closed
                     Ok(n) if n == 0 => return,
                     Ok(n) => n,
@@ -24,13 +24,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
 
                 let mut res = String::from("+PONG\r\n");
-                let req_array: Vec<&str> = std::str::from_utf8(&mut buf)
+                let req_array: Vec<&str> = std::str::from_utf8(&buf)
                     .unwrap()
                     .split("\r\n")
                     .collect();
-                // println!("req: {}", req_array.join(" "));
+                println!("req: {}",req_array.join(", "));
                 if req_array.len() > 4 {
-                    println!("req: {}", req_array.get(4).unwrap());
                     res = format!("+{}\r\n", req_array.get(4).unwrap());
                 }
 
