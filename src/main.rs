@@ -5,7 +5,7 @@ use tokio::net::TcpListener;
 
 struct RedisData {
     value: String,
-    expired_datetime: DateTime<Local>,
+    expired_datetime: Option<DateTime<Local>>,
 }
 
 #[tokio::main]
@@ -46,11 +46,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 else if cmd_name == "set" && req_array.len() > 6 {
                     res = String::from("+OK\r\n");
 
-                    let mut expired_datetime = Local::now();
+                    let mut expired_datetime: Option<DateTime<Local>> = None;
                     let px_index = req_array.iter().position(|&e| e == "px").unwrap_or(0);
                     if px_index > 0 && px_index + 2 <= req_array.len() {
                         let px_str = req_array.get(px_index + 2).unwrap();
-                        expired_datetime += Duration::milliseconds(px_str.parse().unwrap());
+                        expired_datetime =
+                            Some(Local::now() + Duration::milliseconds(px_str.parse().unwrap()));
                     }
 
                     let data = RedisData {
@@ -65,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let str = data.value.to_string();
                     let expired_datetime = data.expired_datetime;
 
-                    if Local::now() > expired_datetime {
+                    if expired_datetime != None && Local::now() > expired_datetime.unwrap() {
                         res = "$-1\r\n".to_string();
                     } else {
                         res = format!("+{}\r\n", str);
