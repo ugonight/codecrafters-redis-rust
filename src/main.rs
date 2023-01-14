@@ -1,6 +1,13 @@
 use std::collections::HashMap;
+use std::fmt::LowerExp;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
+use chrono::{DateTime, Local, TimeZone, Duration, Date};
+
+struct RedisData {
+    value: String,
+    expired_datetime: DateTime<Local>,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,10 +15,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let (mut socket, _) = listener.accept().await?;
+        let mut dic: HashMap<String, RedisData> = HashMap::new();
 
         tokio::spawn(async move {
             let mut buf = [0; 1024];
-            let mut dic: HashMap<String, String> = HashMap::new();
 
             // In a loop, read data from the socket and write the data back.
             loop {
@@ -36,9 +43,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     res = format!("+{}\r\n", req_array.get(4).unwrap());
                 } else if cmd_name == "set" && req_array.len() > 6 {
                     res = String::from("+OK\r\n");
-                    dic.insert(req_array[4].to_string(), req_array[6].to_string());
-                } else if cmd_name == "get" {
-                    let str = dic.get(&req_array[4].to_string()).unwrap().to_string();
+                    let data = RedisData{ value : req_array[6].to_string(), expired_datetime: Local::now()};
+                    dic.insert(req_array[4].to_string(), data);
+                } else if cmd_name == "get" && req_array.len() > 6 {
+                    let data = dic.get(&req_array[4].to_string()).unwrap();
+                    let str = data.value.to_string();
                     res = format!("+{}\r\n", str);
                 }
 
