@@ -1,8 +1,7 @@
+use chrono::{Date, DateTime, Duration, Local, TimeZone};
 use std::collections::HashMap;
-use std::fmt::LowerExp;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use chrono::{DateTime, Local, TimeZone, Duration, Date};
 
 struct RedisData {
     value: String,
@@ -39,16 +38,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 println!("req: {}", req_array.join(", "));
 
+                // echo コマンド
                 if cmd_name == "echo" && req_array.len() > 4 {
                     res = format!("+{}\r\n", req_array.get(4).unwrap());
-                } else if cmd_name == "set" && req_array.len() > 6 {
+                }
+                // set コマンド
+                else if cmd_name == "set" && req_array.len() > 6 {
                     res = String::from("+OK\r\n");
-                    let data = RedisData{ value : req_array[6].to_string(), expired_datetime: Local::now()};
+
+                    let mut expired_datetime = Local::now();
+                    let px_index = req_array.iter().position(|&e| e == "px").unwrap_or(0);
+                    if px_index > 0 && px_index + 2 <= req_array.len() {
+                        let px_str = req_array.get(px_index + 2).unwrap();
+                        expired_datetime += Duration::milliseconds(px_str.parse().unwrap());
+                    }
+
+                    let data = RedisData {
+                        value: req_array[6].to_string(),
+                        expired_datetime,
+                    };
                     dic.insert(req_array[4].to_string(), data);
-                } else if cmd_name == "get" && req_array.len() > 6 {
+                }
+                // get コマンド
+                else if cmd_name == "get" && req_array.len() > 6 {
                     let data = dic.get(&req_array[4].to_string()).unwrap();
                     let str = data.value.to_string();
-                    res = format!("+{}\r\n", str);
+                    let expired_datetime = data.expired_datetime;
+
+                    if Local::now() > expired_datetime {
+                        res = "$-1\r\n".to_string();
+                    } else {
+                        res = format!("+{}\r\n", str);
+                    }
                 }
 
                 // Write the data back
